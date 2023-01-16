@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "GRVAS.Data.MemberImporter": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "NETCORE_ENVIRONMENT": "dev"
+      }
+    }
+  }
+}

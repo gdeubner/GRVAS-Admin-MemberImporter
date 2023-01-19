@@ -1,2 +1,24 @@
 #contains sensitive api key information
 appsettings.json
+obj
+bin
+client_secrets.json
+*.dll
+*.pdb
+*.exe
+*.cache
+*.targets
+*.props
+*.editorconfig	
+*.CopyComplete
+*.BuildWithSkipAnalyzers
+*.v2
+*.lock
+*.visdx
+*.suo
+*.v5.2
+.vs
+.vs/
+*/.vs
+*.project.assets.json
+*.project.nuget.cache

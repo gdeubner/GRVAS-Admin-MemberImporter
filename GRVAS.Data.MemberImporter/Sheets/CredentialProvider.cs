@@ -1,8 +1,4 @@
-﻿using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.Sheets.v4;
-
-namespace GRVAS.Data.MemberImporter.Sheets;
+﻿namespace GRVAS.Data.MemberImporter.Sheets;
 
 internal class CredentialProvider : ICredentialProvider
 {
@@ -27,7 +23,7 @@ internal class CredentialProvider : ICredentialProvider
     private GoogleCredential GetCredentialsFromFile()
     {
         GoogleCredential credential;
-        using (var stream = new FileStream("../../../client_secrets.json", FileMode.Open, FileAccess.Read))
+        using (var stream = new FileStream($"{Directory.GetCurrentDirectory()}/client_secrets.json", FileMode.Open, FileAccess.Read))
         {
             credential = GoogleCredential.FromStream(stream).CreateScoped(Scopes);
         }

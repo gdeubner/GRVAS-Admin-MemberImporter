@@ -14,4 +14,14 @@ internal class Member
     public string? Cell { get; set; }
     public string? Email { get; set; }
     public string? Id { get; set; }
+    public bool IsDriver { get; set; }
+    public bool IsEmt { get; set; }
+    public bool IsCC { get; set; }
+    public bool IsInTraining { get; set; }
+    public bool IsTransport { get; set; }
+    public bool InHighschool { get; set; }
+    public bool IsFourth { get; set; }
+    public bool IsActive { get; set; }
+    public string? Schedule_id { get; set; }
+
 }

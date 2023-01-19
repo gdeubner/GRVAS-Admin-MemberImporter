@@ -1,11 +1,4 @@
-﻿using Autofac;
-using Autofac.Extensions.DependencyInjection;
-using GRVAS.Training.CeuEmailCreator.DI;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using System.Reflection;
-
-var environmentName = Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT");
+﻿var environmentName = Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT");
 
 Console.WriteLine($"Environment: {environmentName}");
 Console.WriteLine($"Version: {Assembly.GetExecutingAssembly().GetName().Version}");

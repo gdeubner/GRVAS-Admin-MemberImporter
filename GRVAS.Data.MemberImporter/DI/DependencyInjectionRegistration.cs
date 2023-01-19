@@ -1,15 +1,10 @@
 ﻿using Autofac;
-using GRVAS.Data.MemberImporter.Job;
-using GRVAS.Data.MemberImporter.Sheets;
-using Hangfire;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace GRVAS.Training.CeuEmailCreator.DI;
 
 internal static class DependencyInjectionRegistration
 {
+    private const string DC_CONNECTION_STRING = "server=192.168.1.170;user=root;database=grvas_data;port=3306;password=Swimmerboy97";
     public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
     {
         //place holder
@@ -24,12 +19,18 @@ internal static class DependencyInjectionRegistration
 
         //Google Sheets
         builder.RegisterType<CredentialProvider>().As<ICredentialProvider>().SingleInstance();
-
-        //Database
         builder.RegisterType<DataImporter>().As<IDataImporter>().SingleInstance();
 
         //Processor
         builder.RegisterType<MemberProcessor>().As<IHostedService>().SingleInstance();
+
+        //Database
+        builder.RegisterType<DataWriter>().As<IDataWriter>().SingleInstance()
+            .WithParameter("connectionString", DC_CONNECTION_STRING);
+        builder.RegisterType<TableManager>().As<ITableManager>().SingleInstance()
+            .WithParameter("connectionString", DC_CONNECTION_STRING);
+
+        //pi@Talos1
     }
 
 

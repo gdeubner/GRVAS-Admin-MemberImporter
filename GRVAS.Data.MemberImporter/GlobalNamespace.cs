@@ -4,7 +4,6 @@ global using Google.Apis.Auth.OAuth2;
 global using Google.Apis.Services;
 global using Google.Apis.Sheets.v4;
 global using GRVAS.Data.MemberImporter.Database;
-global using GRVAS.Data.MemberImporter.Job;
 global using GRVAS.Data.MemberImporter.Models;
 global using GRVAS.Data.MemberImporter.Sheets;
 global using GRVAS.Training.CeuEmailCreator.DI;

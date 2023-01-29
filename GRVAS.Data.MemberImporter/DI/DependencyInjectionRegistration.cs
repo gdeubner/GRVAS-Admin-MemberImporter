@@ -1,4 +1,6 @@
 ﻿using Autofac;
+using GRVAS.Data.MemberImporter.HostedServices;
+using GRVAS.Data.MemberImporter.Processor;
 
 namespace GRVAS.Training.CeuEmailCreator.DI;
 
@@ -22,7 +24,7 @@ internal static class DependencyInjectionRegistration
         builder.RegisterType<DataImporter>().As<IDataImporter>().SingleInstance();
 
         //Processor
-        builder.RegisterType<MemberProcessor>().As<IHostedService>().SingleInstance();
+        builder.RegisterType<MemberProcessor>().As<IMemberProcessor>().SingleInstance();
 
         //Database
         builder.RegisterType<DataWriter>().As<IDataWriter>().SingleInstance()
@@ -30,7 +32,9 @@ internal static class DependencyInjectionRegistration
         builder.RegisterType<TableManager>().As<ITableManager>().SingleInstance()
             .WithParameter("connectionString", DC_CONNECTION_STRING);
 
-        //pi@Talos1
+        //// Hangfire
+        builder.RegisterType<RecurringJobManager>().As<IRecurringJobManager>().SingleInstance();
+        builder.RegisterType<HangfireJobServerService>().As<IHostedService>().SingleInstance();
     }
 
 

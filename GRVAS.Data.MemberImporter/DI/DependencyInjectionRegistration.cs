@@ -1,5 +1,4 @@
-﻿using Autofac;
-using GRVAS.Data.MemberImporter.HostedServices;
+﻿using GRVAS.Data.MemberImporter.HostedServices;
 using GRVAS.Data.MemberImporter.Processor;
 
 namespace GRVAS.Training.CeuEmailCreator.DI;
@@ -15,10 +14,6 @@ internal static class DependencyInjectionRegistration
 
     public static void ConfigureContainer(this ContainerBuilder builder, IConfiguration configuration)
     {
-        // Hangfire
-        //builder.RegisterType<HangfireJobServerService>().As<IHostedService>().SingleInstance();
-        builder.RegisterType<RecurringJobManager>().As<IRecurringJobManager>().SingleInstance();
-
         //Google Sheets
         builder.RegisterType<CredentialProvider>().As<ICredentialProvider>().SingleInstance();
         builder.RegisterType<DataImporter>().As<IDataImporter>().SingleInstance();
@@ -32,10 +27,9 @@ internal static class DependencyInjectionRegistration
         builder.RegisterType<TableManager>().As<ITableManager>().SingleInstance()
             .WithParameter("connectionString", DC_CONNECTION_STRING);
 
-        //// Hangfire
+        // Hangfire
         builder.RegisterType<RecurringJobManager>().As<IRecurringJobManager>().SingleInstance();
         builder.RegisterType<HangfireJobServerService>().As<IHostedService>().SingleInstance();
+        builder.RegisterType<HangfireJobScheduler>().As<IHostedService>().InstancePerDependency();
     }
-
-
 }

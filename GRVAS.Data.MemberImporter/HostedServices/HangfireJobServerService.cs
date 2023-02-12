@@ -5,6 +5,7 @@ namespace GRVAS.Data.MemberImporter.HostedServices;
 internal class HangfireJobServerService : IHostedService
 {
     private BackgroundJobServer _backgroundJobServer;
+        
 
     public HangfireJobServerService(
         ILifetimeScope lifetimeScope)

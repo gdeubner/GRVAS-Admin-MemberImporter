@@ -19,7 +19,7 @@ internal class MemberProcessor : IMemberProcessor
         _logger = logger;
     }
 
-    public async Task<bool> Process()
+    public async Task<bool> ProcessAsync()
     {
         try
         {

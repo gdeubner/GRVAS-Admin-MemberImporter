@@ -1,17 +1,18 @@
 ﻿using GRVAS.Data.MemberImporter.Processor;
+using Hangfire.Storage;
 
 namespace GRVAS.Data.MemberImporter.HostedServices;
 
-internal class HangfireJob : IHostedService
+internal class HangfireJobScheduler : IHostedService
 {
     private readonly IRecurringJobManager _recurringJobManager;
     private readonly IMemberProcessor _memberProcessor;
-    private ILogger<HangfireJob> _logger;
+    private ILogger<HangfireJobScheduler> _logger;
 
-    public HangfireJob(
+    public HangfireJobScheduler(
         IRecurringJobManager recurringJobManager,
         IMemberProcessor memberProcessor,
-        ILogger<HangfireJob> logger)
+        ILogger<HangfireJobScheduler> logger)
     {
         _recurringJobManager = recurringJobManager;
         _memberProcessor = memberProcessor;
@@ -20,14 +21,16 @@ internal class HangfireJob : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting historical gps average processor");
+        _logger.LogInformation("Starting grvas member importer");
 
         _recurringJobManager.AddOrUpdate(
-            "Historical Average Processor Task",
-            () => _memberProcessor.Process(),
-            $"{DateTime.UtcNow.AddMinutes(1).Minute} * * * *", //"0 0 * * *",
+            "Member Importer Task",
+            () => _memberProcessor.ProcessAsync(),
+             $"{DateTime.UtcNow.AddMinutes(1).Minute} * * * *", //"0 8 * * *",
             TimeZoneInfo.Utc);
 
+        var job = JobStorage.Current.GetConnection().GetRecurringJobs().FirstOrDefault().NextExecution;
+        _logger.LogInformation($"Next execution: {job}");
         return Task.CompletedTask;
     }
 

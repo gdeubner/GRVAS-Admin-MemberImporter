@@ -2,5 +2,5 @@
 
 internal interface IMemberProcessor
 {
-    Task<bool> Process();
+    Task<bool> ProcessAsync();
 }

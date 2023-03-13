@@ -1,10 +1,14 @@
-﻿namespace GRVAS.Data.MemberImporter.Sheets;
+﻿using System.Diagnostics;
+
+namespace GRVAS.Data.MemberImporter.Sheets;
 
 internal class DataImporter : IDataImporter
 {
 
     private readonly SpreadsheetsResource.ValuesResource _googleSheetValues;
     private readonly ILogger<DataImporter> _logger;
+
+    private const int RESPONSE_THRESHHOLD = 10 * 1000;
 
     private const string SPREADSHEET_ID = "1UvKp2dYshVNZOO41Ac3K6ekj9Hk1079yT-_9qoN8OEs";
 
@@ -20,7 +24,14 @@ internal class DataImporter : IDataImporter
         {
             var range = "A:K";
             var request = _googleSheetValues.Get(SPREADSHEET_ID, range);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             var response = await request.ExecuteAsync();
+            stopwatch.Stop();
+            if(stopwatch.ElapsedMilliseconds > RESPONSE_THRESHHOLD)
+            {
+                _logger.LogInformation($"Google sheets api had a high response time: {stopwatch.Elapsed}");
+            }
             var values = response.Values;
 
             var members = new List<Member>();
@@ -42,13 +53,15 @@ internal class DataImporter : IDataImporter
                             EmtExpiration = _formatDate(v?[3].ToString()),
                             CprExpiration = _formatDate(v?[4].ToString()),
                             Status = v?.Count() >= 6 ? v?[5].ToString()?.Trim() : null,
-                            Home = v?.Count() >= 7 ? v?[6].ToString()?.Trim() : null,
+                            HomePhone = v?.Count() >= 7 ? v?[6].ToString()?.Trim() : null,
                             Address = v?.Count() >= 8 ? v?[7].ToString()?.Trim() : null,
-                            Cell = v?.Count() >= 9 ? v?[8].ToString()?.Trim() : null,
+                            CellPhone = v?.Count() >= 9 ? v?[8].ToString()?.Trim() : null,
                             Email = v?.Count() >= 10 ? v?[9].ToString()?.Trim() : null,
                             Schedule_id = v?.Count() >= 11 ? v?[10].ToString()?.Trim() : null,
-                            IsDriver = (v?[5]?.ToString()?.ToLower().Contains("driver") ?? false) || (v?[5]?.ToString()?.ToLower().Contains("cc") ?? false),
-                            IsEmt = (v?[5]?.ToString()?.ToLower().Contains("emt") ?? false) || (v?[5]?.ToString()?.ToLower().Contains("cc") ?? false),
+                            IsDriver = (v?[5]?.ToString()?.ToLower().Contains("driver") ?? false) || 
+                                (v?[5]?.ToString()?.ToLower().Contains("cc") ?? false),
+                            IsEmt = (v?[5]?.ToString()?.ToLower().Contains("emt") ?? false) || 
+                                (v?[5]?.ToString()?.ToLower().Contains("cc") ?? false),
                             IsCC = v?[5]?.ToString()?.ToLower().Contains("cc") ?? false,
                             IsInTraining = (v?[5]?.ToString() == null) || (v?[5]?.ToString()?.Trim().Length == 0) ||
                                 (v?[5]?.ToString()?.ToLower().Contains("i/t") ?? false) ||
@@ -61,9 +74,15 @@ internal class DataImporter : IDataImporter
                     }
                    
                 }
+                catch (TaskCanceledException)
+                {
+                    _logger.LogInformation("Google sheets request timed out.");
+                    return null;
+                }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Unable to parse member. Exc: {e}");
+                    _logger.LogError($"Unable to parse member. Exc: {e}");
+                    return null;
                 }
             }
 
@@ -76,13 +95,14 @@ internal class DataImporter : IDataImporter
         }
     }
 
-    private string? _formatDate(string? date)
+    private DateOnly? _formatDate(string? date)
     {
-        if (!string.IsNullOrEmpty(date) && !(date?.ToLower().Equals("n/a") ?? false) && !(date?.ToLower().Equals("x")??false) && !(date?.ToLower().Equals("i/t") ?? false))
+        if (!string.IsNullOrEmpty(date) && !(date?.ToLower().Equals("n/a") ?? false) && 
+            !(date?.ToLower().Equals("x")??false) && !(date?.ToLower().Equals("i/t") ?? false))
         {
-            if(DateTime.TryParse(date, out var parsedDate))
+            if(DateOnly.TryParse(date, out var parsedDate))
             {
-                return $"{parsedDate.Year}-{parsedDate.Month}-{parsedDate.Day}";
+                return parsedDate;
             }
             else
             {

@@ -1,14 +1,17 @@
+using Amazon.DynamoDBv2;
 using Amazon.Lambda.Core;
+using GRVAS.Admin.MemberImporter.Dynamo;
 using GRVAS.Admin.MemberImporter.Processor;
 using GRVAS.Data.MemberImporter.Sheets;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-
 namespace GRVAS.Admin.MemberImporter;
 
 public class Function
 {
+    private const string TABLE_NAME = "GrvasMembers";
+
     /// <summary>
     /// Default constructor that Lambda will invoke.
     /// </summary>
@@ -23,7 +26,7 @@ public class Function
 
             var memberProcessor = serviceProvider.GetService<IMemberProcessor>();
 
-            memberProcessor?.ProcessAsync();
+            var result = memberProcessor.ProcessAsync().Result;
 
             LambdaLogger.Log("Function Finished");
             return true;
@@ -58,12 +61,26 @@ public class Function
                 builder.AddLambdaLogger();
             });
 
+            builder.RegisterType<AmazonDynamoDBClient>().As<IAmazonDynamoDB>().SingleInstance();
+
             //var senderEmail = Environment.GetEnvironmentVariable(SENDER_EMAIL);
             //var destinationEmail = Environment.GetEnvironmentVariable(DESTINATION_EMAIL);
-
+            
+            //Processor
             builder.RegisterType<MemberProcessor>().As<IMemberProcessor>().SingleInstance();
+            
+            //Google sheeets
             builder.RegisterType<DataImporter>().As<IDataImporter>().SingleInstance();
             builder.RegisterType<CredentialProvider>().As<ICredentialProvider>().SingleInstance();
+
+            //Dynamo
+            builder.RegisterType<TableCreator>().As<ITableCreator>().SingleInstance()
+                .WithParameter("tableName", TABLE_NAME);
+            builder.RegisterType<TableDeleter>().As<ITableDeleter>().SingleInstance()
+                .WithParameter("tableName", TABLE_NAME);
+            builder.RegisterType<MemberInserter>().As<IMemberInserter>().SingleInstance()
+                .WithParameter("tableName", TABLE_NAME);
+
 
             //Build 
             builder.Populate(services);

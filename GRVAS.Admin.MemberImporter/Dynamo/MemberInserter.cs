@@ -6,6 +6,8 @@ internal class MemberInserter : IMemberInserter
     private readonly ILogger<TableCreator> _logger;
     private readonly string _tableName;
 
+    private const int BATCH_SIZE = 25;
+
     public MemberInserter(
         IAmazonDynamoDB dynamoDB,
         ILogger<TableCreator> logger,
@@ -17,6 +19,27 @@ internal class MemberInserter : IMemberInserter
     }
 
     public async Task<bool> InsertAsync(List<Member> members)
+    {
+        var batchList = new List<List<Member>>();
+        var batch = new List<Member>();
+        for (int i = 0; i < members.Count; i++)
+        {
+            if ((i + 1) % BATCH_SIZE != 0)
+            {
+                batch.Add(members[i]);
+            }
+            else
+            {
+                _logger.LogInformation($"Inserting member batch {(i+1)/25}");
+                batchList.Add(batch);
+                batch = new List<Member>();
+            }
+        }
+        await Task.WhenAll(batchList.Select(b => _batchInsertAsync(b)));
+        return true;
+    }
+
+    private async Task<bool> _batchInsertAsync(List<Member> members)
     {
         if (members == null || !members.Any())
         {
@@ -34,27 +57,13 @@ internal class MemberInserter : IMemberInserter
             response = await _dynamoDB.BatchWriteItemAsync(request);
             callCount++;
 
-            // Check the response.
-
             var tableConsumedCapacities = response.ConsumedCapacity;
             var unprocessed = response.UnprocessedItems;
-
-            Console.WriteLine("Per-table consumed capacity");
-            foreach (var tableConsumedCapacity in tableConsumedCapacities)
-            {
-                Console.WriteLine("{0} - {1}", tableConsumedCapacity.TableName, tableConsumedCapacity.CapacityUnits);
-            }
-
-            Console.WriteLine("Unprocessed");
-            foreach (var unp in unprocessed)
-            {
-                Console.WriteLine("{0} - {1}", unp.Key, unp.Value.Count);
-            }
-            Console.WriteLine();
 
             // For the next iteration, the request will have unprocessed items.
             request.RequestItems = unprocessed;
         } while (response.UnprocessedItems.Count > 0);
+        _logger.LogInformation($"Finished inserting batch.");
         return true;
     }
 
@@ -64,7 +73,7 @@ internal class MemberInserter : IMemberInserter
 
         foreach (var member in members)
         {
-            var temp = new WriteRequest
+            writeRequest.Add(new WriteRequest
             {
                 PutRequest = new PutRequest
                 {
@@ -77,21 +86,74 @@ internal class MemberInserter : IMemberInserter
                         { "LastName", new AttributeValue {
                                 S = member.LastName
                             }
+                        },
+                        { "FirstName", new AttributeValue {
+                                S = member.FirstName
+                            }
+                        },
+                        { "Njemt", new AttributeValue {
+                                S = member.Njemt
+                            }
+                        },
+                        { "Nremt", new AttributeValue {
+                                S = member.Nremt
+                            }
+                        },
+                        { "EmtExpiration", new AttributeValue {
+                                S = member.EmtExpiration.ToString()
+                            }
+                        },
+                        { "CprExpiration", new AttributeValue {
+                                S = member.CprExpiration.ToString()
+                            }
+                        },
+                        { "Email", new AttributeValue {
+                                S = member.Email
+                            }
+                        },
+                        { "IsDriver", new AttributeValue {
+                                BOOL = member.IsDriver ?? false
+                            }
+                        },
+                        { "IsEmt", new AttributeValue {
+                                BOOL = member.IsEmt ?? false
+                            }
+                        },
+                        { "IsInTraining", new AttributeValue {
+                                BOOL = member.IsInTraining ?? false
+                            }
+                        },
+                        { "IsTransport", new AttributeValue {
+                                BOOL = member.IsTransport ?? false
+                            }
+                        },
+                        { "InHighschool", new AttributeValue {
+                                BOOL = member.InHighschool ?? false
+                            }
+                        },
+                        { "IsFourth", new AttributeValue {
+                                BOOL = member.IsFourth ?? false
+                            }
+                        },
+                        { "IsActive", new AttributeValue {
+                                BOOL = member.IsActive ?? false
+                            }
                         }
+
                     }
                 }
-            };
+            });
         }
 
         var request = new BatchWriteItemRequest
         {
             ReturnConsumedCapacity = "TOTAL",
             RequestItems = new Dictionary<string, List<WriteRequest>>
-            {
                 {
-                    _tableName, writeRequest
+                    {
+                        _tableName, writeRequest
+                    }
                 }
-            }
         };
 
         return request;

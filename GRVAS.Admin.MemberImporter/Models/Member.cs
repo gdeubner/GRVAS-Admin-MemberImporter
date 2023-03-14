@@ -9,9 +9,7 @@ internal class Member
     public DateOnly? EmtExpiration { get; set; }
     public DateOnly? CprExpiration { get; set; }
     public string? Status { get; set; }
-    public string? HomePhone { get; set; }
-    public string? Address { get; set; }
-    public string? CellPhone { get; set; }
+    //public string? CellPhone { get; set; }
     public string? Email { get; set; }
     public string? Id { get; set; }
     public bool? IsDriver { get; set; }

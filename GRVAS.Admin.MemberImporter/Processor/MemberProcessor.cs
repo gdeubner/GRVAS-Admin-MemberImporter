@@ -29,9 +29,9 @@ internal class MemberProcessor : IMemberProcessor
 
     public async Task<bool> ProcessAsync()
     {
+        var stopwatch = new Stopwatch();
         try
         {
-            var stopwatch = new Stopwatch();
             stopwatch.Start();
             List<Member> members = null;
             var counter = 0;
@@ -39,7 +39,7 @@ internal class MemberProcessor : IMemberProcessor
             {
                 members = await _dataImporter.GetMembersFromGoogleSheetsAsync();
                 counter++;
-                if(counter >= 10)
+                if(counter >= 10) //try 10 times max
                 {
                     _logger.LogError("Unable to retrieve member data from google sheets after 10 attempts. Ending process.");
                     return false;
@@ -56,6 +56,9 @@ internal class MemberProcessor : IMemberProcessor
         catch(Exception ex)
         {
             _logger.LogError($"Failed to process member import due to exception. Exc: {ex}");
+            stopwatch.Stop();
+            _logger.LogInformation($"Member importer finished with processing time: {stopwatch.Elapsed}");
+
             return false;
         }
     }

@@ -53,9 +53,7 @@ internal class DataImporter : IDataImporter
                             EmtExpiration = _formatDate(v?[3].ToString()),
                             CprExpiration = _formatDate(v?[4].ToString()),
                             Status = v?.Count() >= 6 ? v?[5].ToString()?.Trim() : null,
-                            HomePhone = v?.Count() >= 7 ? v?[6].ToString()?.Trim() : null,
-                            Address = v?.Count() >= 8 ? v?[7].ToString()?.Trim() : null,
-                            CellPhone = v?.Count() >= 9 ? v?[8].ToString()?.Trim() : null,
+                            //CellPhone = v?.Count() >= 9 ? v?[8].ToString()?.Trim() : null,
                             Email = v?.Count() >= 10 ? v?[9].ToString()?.Trim() : null,
                             Schedule_id = v?.Count() >= 11 ? v?[10].ToString()?.Trim() : null,
                             IsDriver = (v?[5]?.ToString()?.ToLower().Contains("driver") ?? false) || 

@@ -1,4 +1,6 @@
-﻿namespace GRVAS.Admin.MemberImporter.Dynamo;
+﻿using Amazon.DynamoDBv2.DataModel;
+
+namespace GRVAS.Admin.MemberImporter.Dynamo;
 
 internal class MemberInserter : IMemberInserter
 {

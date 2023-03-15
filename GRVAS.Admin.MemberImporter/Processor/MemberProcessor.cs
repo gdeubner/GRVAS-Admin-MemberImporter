@@ -45,9 +45,26 @@ internal class MemberProcessor : IMemberProcessor
                     return false;
                 }
             }
-            var deleteResult = await _tableDeleter.DeleteAsync();
-            var createResult = await _tableCreator.CreateAsync();
-            var insertResult = await _memberInserter.InsertAsync(members);
+            if (! await _tableDeleter.DeleteAsync())
+            {
+                _logger.LogInformation("Dynamo table could not be deleted. Ending process." );
+                return false;
+            }
+
+            if (! await _tableCreator.CreateAsync())
+            {
+                _logger.LogInformation("Dynamo table could not be created. Ending process." );
+                return false;
+            }
+
+            if ( await _memberInserter.InsertAsync(members) )
+            {
+                _logger.LogInformation("Successfully inserted member data to dynamo");
+            }
+            else
+            {
+                _logger.LogInformation("Inserting member data to Dynamo was not successful.");
+            }
 
             stopwatch.Stop();
             _logger.LogInformation($"Member importer finished with processing time: {stopwatch.Elapsed}");

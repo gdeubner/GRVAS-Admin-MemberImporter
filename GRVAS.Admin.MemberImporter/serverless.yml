@@ -1,0 +1,19 @@
+service: member-importer
+
+provider:
+  name: aws  
+  runtime: dotnet6
+  region: us-east-1
+  stage: ${opt:stage,'dev'}
+
+    
+package:
+  artifact: bin/release/net6.0/deploy-package.zip
+
+functions:
+  main:
+    handler: GRVAS.Admin.MemberImporter::GRVAS.Admin.MemberImporter.Function::FunctionHandler
+    timeout: 600
+    events:
+      - eventBridge:
+          schedule: cron(0 6 * * ? *)
